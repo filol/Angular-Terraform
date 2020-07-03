@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+    commands:
+      - npm ci
+  build:
+    commands:
+      - npm run build
+  post_build:
+    commands:
+      - aws s3 sync --delete dist/${sub_build_folder} s3://${bucket_name} --cache-control max-age=3600
+      - echo 'Invalidating distribution cache'
+      - aws cloudfront create-invalidation --distribution-id ${distribution_id} --paths "/*"
+cache:
+  paths:
+    - '$HOME/.npm'
